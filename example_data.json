@@ -2,12 +2,12 @@
     "folders":
     [
         {
-            "source": "",
-            "target": ""
+            "source": "/foo/bar/",
+            "target": "/backups"
         },
         {
-            "source": "",
-            "target": ""
+            "source": "/bar/foo",
+            "target": "/hdd/backups"
         }
     ]
 }
