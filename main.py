@@ -1,7 +1,9 @@
-import json
-import distutils.dir_util  # needs setuptools package
 import os
+import json
 import pathlib
+import shutil
+
+import distutils.dir_util  # needs setuptools package
 
 with open("data.json") as file:
     data = json.load(file)
@@ -11,10 +13,14 @@ for folder in data["folders"]:
     targetIsNotEmpty = folder["target"] != ""
     originExists = os.path.exists(folder["origin"])
     targetExists = os.path.exists(folder["target"])
+
     if originIsNotEmpty and targetIsNotEmpty and originExists and targetExists:
         targetName = pathlib.PurePosixPath(folder["origin"]).stem
-        distutils.dir_util.copy_tree(folder["origin"], folder["target"] + targetName)
-        print(f"Copied contents of {folder["origin"]} to {folder["target"] + targetName}")
+        tempTargetDir = folder["target"] + "temp/" + targetName
+        targetDir = folder["target"] + targetName
 
-# To-do: add "temp" to dest directory, zip all files in temp when all folders have been processed, delete temp files
-# or maybe just add the source files straight to the zip if possible, idk
+        distutils.dir_util.copy_tree(folder["origin"], tempTargetDir)
+        with open(tempTargetDir + "/origin_" + targetName + ".txt", "w") as file:
+            file.write(folder["origin"])
+        shutil.make_archive(targetDir, 'zip', tempTargetDir)
+        shutil.rmtree(tempTargetDir)
