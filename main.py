@@ -2,25 +2,21 @@ import os
 import json
 import pathlib
 import shutil
-
-import distutils.dir_util  # needs setuptools package
+import zipfile
 
 with open("data.json") as file:
     data = json.load(file)
 
 for folder in data["folders"]:
-    originIsNotEmpty = folder["origin"] != ""
+    sourceIsNotEmpty = folder["source"] != ""
     targetIsNotEmpty = folder["target"] != ""
-    originExists = os.path.exists(folder["origin"])
+    sourceExists = os.path.exists(folder["source"])
     targetExists = os.path.exists(folder["target"])
 
-    if originIsNotEmpty and targetIsNotEmpty and originExists and targetExists:
-        targetName = pathlib.PurePosixPath(folder["origin"]).stem
-        tempTargetDir = folder["target"] + "temp/" + targetName
+    if sourceIsNotEmpty and targetIsNotEmpty and sourceExists and targetExists:
+        targetName = pathlib.PurePosixPath(folder["source"]).stem
         targetDir = folder["target"] + targetName
 
-        distutils.dir_util.copy_tree(folder["origin"], tempTargetDir)
-        with open(tempTargetDir + "/origin_" + targetName + ".txt", "w") as file:
-            file.write(folder["origin"])
-        shutil.make_archive(targetDir, 'zip', tempTargetDir)
-        shutil.rmtree(tempTargetDir)
+        shutil.make_archive(targetDir, "zip", folder["source"])
+        with zipfile.ZipFile(targetDir + ".zip", "a", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("source_" + targetName + ".txt", folder["source"])
