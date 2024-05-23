@@ -7,6 +7,8 @@ from datetime import datetime
 from time import time
 from math import floor
 
+backupCount = 4
+
 with open("data.json") as file:
     data = load(file)
 
@@ -59,7 +61,7 @@ for backupDir in data["folder"]:
                 with open(trackingFile, "r+") as file:
                     trackedBackups = file.read().splitlines()
                     trackedBackups.insert(0, targetFileNameWithExt)
-                    if len(trackedBackups) > 5:
+                    if len(trackedBackups) > backupCount:
                         fileToDelete = trackedBackups[-1]
                         del trackedBackups[-1]
                         Path(backupDir["target"] + fileToDelete).unlink()
