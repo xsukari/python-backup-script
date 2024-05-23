@@ -6,8 +6,14 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from datetime import datetime
 from time import time
 from math import floor
+from argparse import ArgumentParser
 
 backupCount = 4
+
+parser = ArgumentParser(description="Python backup script")
+parser.add_argument("-v", "--verbose", action="store_true", required=False, help="Enable output to console with -v")
+args = parser.parse_args()
+verbose = args.verbose
 
 with open("data.json") as file:
     data = load(file)
@@ -34,13 +40,16 @@ for backupDir in data["folder"]:
             with ZipFile(targetFullPathWithExt, "a", compression=ZIP_DEFLATED) as archive:
                 archive.writestr("source_" + targetName + ".txt", backupDir["source"])
             timeEnd = time()
-            logFile.write(
+            logMessage = (
                 datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
                 f"Backup of {backupDir["source"]} " +
                 f"created as {targetFileNameWithExt} " +
                 f"in {floor(timeEnd - timeStart)} seconds" +
                 "\n"
             )
+            if verbose:
+                print(logMessage)
+            logFile.write(logMessage)
 
             # Create tracking file for the backups
             trackingFile = (
@@ -52,11 +61,15 @@ for backupDir in data["folder"]:
             if not path.isfile(trackingFile):
                 with open(trackingFile, "w") as file:
                     file.write(targetFileNameWithExt)
-                    logFile.write(
+                    logMessage = (
                         datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
                         f"Created new tracking file for {backupDir["source"]}" +
                         "\n"
                     )
+                    if verbose:
+                        print(logMessage)
+                    logFile.write(logMessage)
+
             else:
                 with open(trackingFile, "r+") as file:
                     trackedBackups = file.read().splitlines()
@@ -65,10 +78,13 @@ for backupDir in data["folder"]:
                         fileToDelete = trackedBackups[-1]
                         del trackedBackups[-1]
                         Path(backupDir["target"] + fileToDelete).unlink()
-                        logFile.write(
+                        logMessage = (
                             datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
                             f"Deleted old backup {fileToDelete} of {backupDir["source"]}" +
                             "\n"
                         )
+                        if verbose:
+                            print(logMessage)
+                        logFile.write(logMessage)
                     file.seek(0)
                     file.write("\n".join(trackedBackups))
