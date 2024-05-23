@@ -42,7 +42,7 @@ for backupDir in data["folder"]:
             timeEnd = time()
             logMessage = (
                 datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
-                f"Backup of {backupDir["source"]} " +
+                f"Backup of {backupDir['source']} " +
                 f"created as {targetFileNameWithExt} " +
                 f"in {floor(timeEnd - timeStart)} seconds" +
                 "\n"
@@ -63,7 +63,7 @@ for backupDir in data["folder"]:
                     file.write(targetFileNameWithExt)
                     logMessage = (
                         datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
-                        f"Created new tracking file for {backupDir["source"]}" +
+                        f"Created new tracking file for {backupDir['source']}" +
                         "\n"
                     )
                     if verbose:
@@ -80,7 +80,7 @@ for backupDir in data["folder"]:
                         Path(backupDir["target"] + fileToDelete).unlink()
                         logMessage = (
                             datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
-                            f"Deleted old backup {fileToDelete} of {backupDir["source"]}" +
+                            f"Deleted old backup {fileToDelete} of {backupDir['source']}" +
                             "\n"
                         )
                         if verbose:
