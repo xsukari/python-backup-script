@@ -168,6 +168,7 @@ for backupDir in data["folder"]:
             try:
                 createArchive()
                 createTrackingFile()
+                archiveFailed = False
 
             except PermissionError:
                 logMessage = (
@@ -179,7 +180,7 @@ for backupDir in data["folder"]:
 
                 # Delete failed zip
                 Path(targetFullPathWithExt).unlink()
-                zipFailed = True
+                archiveFailed = True
 
-            if zipFailed:
+            if archiveFailed:
                 tryFallback()
