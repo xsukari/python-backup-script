@@ -1,4 +1,4 @@
-from os import path
+from os.path import isfile, exists, join
 from json import load
 from pathlib import PurePosixPath, Path
 from shutil import make_archive, copytree, rmtree, Error as shutilError
@@ -18,7 +18,7 @@ def createArchive(altSrc = None):
     global logMessage
 
     if altSrc is None:
-        src = backupDir["source"]
+        src = source
 
     else:
         src = altSrc
@@ -26,12 +26,12 @@ def createArchive(altSrc = None):
     timeStart = time()
     make_archive(targetFullPath, "zip", src)
     with ZipFile(targetFullPathWithExt, "a", compression=ZIP_DEFLATED) as archive:
-        archive.writestr("source_" + targetName + ".txt", backupDir["source"])
+        archive.writestr("source_" + targetName + ".txt", source)
     timeEnd = time()
 
     logMessage = (
             datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
-            f"BACKUP of {backupDir['source']} " +
+            f"BACKUP of {source} " +
             f"CREATED as {targetFileNameWithExt} " +
             f"in {floor(timeEnd - timeStart)} seconds" +
             "\n"
@@ -43,18 +43,18 @@ def createTrackingFile():
     global logMessage, file
 
     trackingFile = (
-        backupDir["target"] +
+        target +
         "." +
-        backupDir["source"].replace("/", "%").replace("\\", "%") +
+        source.replace("/", "%").replace("\\", "%") +
         ".txt"
     )
-    if not path.isfile(trackingFile):
+    if not isfile(trackingFile):
         with open(trackingFile, "w") as file:
             file.write(targetFileNameWithExt)
 
             logMessage = (
                     datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
-                    f"CREATED new tracking file for {backupDir['source']}" +
+                    f"CREATED new tracking file for {source}" +
                     "\n"
             )
             log(logMessage)
@@ -67,11 +67,11 @@ def createTrackingFile():
             if len(trackedBackups) > backupCount:
                 fileToDelete = trackedBackups[-1]
                 del trackedBackups[-1]
-                Path(backupDir["target"] + fileToDelete).unlink()
+                Path(target + fileToDelete).unlink()
 
                 logMessage = (
                         datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
-                        f"DELETED old backup {fileToDelete} of {backupDir['source']}" +
+                        f"DELETED old backup {fileToDelete} of {source}" +
                         "\n"
                 )
                 log(logMessage)
@@ -84,7 +84,7 @@ def tryFallback():
     global logMessage
 
     try:
-        copytree(backupDir["source"], targetFullPathTemp, dirs_exist_ok=True)
+        copytree(source, targetFullPathTemp, dirs_exist_ok=True)
 
     except shutilError:
         logMessage = (
@@ -148,18 +148,22 @@ with open("data.json") as file:
 for backupDir in data["folder"]:
     sourceIsNotEmpty = backupDir["source"] != ""
     targetIsNotEmpty = backupDir["target"] != ""
-    sourceExists = path.exists(backupDir["source"])
-    targetExists = path.exists(backupDir["target"])
+    sourceExists = exists(backupDir["source"])
+    targetExists = exists(backupDir["target"])
 
     if sourceIsNotEmpty and targetIsNotEmpty and sourceExists and targetExists:
-        targetName = PurePosixPath(backupDir["source"]).stem
+        # Add trailing slash to path if it does not exist
+        source = join(backupDir["source"], "")
+        target = join(backupDir["target"], "")
+
+        targetName = PurePosixPath(source).stem
         targetFileName = targetName + "_" + datetime.today().strftime("(%Y-%m-%d %H:%M:%S.%f)")
         targetFileNameWithExt = targetFileName + ".zip"
-        targetFullPath = backupDir["target"] + targetFileName
+        targetFullPath = target + targetFileName
         targetFullPathWithExt = targetFullPath + ".zip"
-        targetFullPathTemp = backupDir["target"] + "temp/" + targetFileName
+        targetFullPathTemp = target + "temp/" + targetFileName
 
-        logFile = backupDir["target"] + ".log.txt"
+        logFile = target + ".log.txt"
         with open(logFile, "a") as logFile:
             try:
                 createArchive()
@@ -168,7 +172,7 @@ for backupDir in data["folder"]:
             except PermissionError:
                 logMessage = (
                         datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
-                        f"Permission DENIED for {backupDir['source']}, FALLING BACK to copying files" +
+                        f"Permission DENIED for {source}, FALLING BACK to copying files" +
                         "\n"
                 )
                 log(logMessage)
