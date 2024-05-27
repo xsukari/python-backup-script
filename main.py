@@ -124,6 +124,8 @@ def tryFallback():
 
         # Delete failed zip
         Path(targetFullPathWithExt).unlink()
+        # Delete temp files
+        rmtree(targetFullPathTemp)
 
 
 # Script start
