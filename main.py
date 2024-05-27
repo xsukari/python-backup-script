@@ -150,17 +150,16 @@ for backupDir in data["folder"]:
     targetExists = path.exists(backupDir["target"])
 
     if sourceIsNotEmpty and targetIsNotEmpty and sourceExists and targetExists:
-        logFile = backupDir["target"] + ".log.txt"
+        targetName = PurePosixPath(backupDir["source"]).stem
+        targetFileName = targetName + "_" + datetime.today().strftime("(%Y-%m-%d %H:%M:%S.%f)")
+        targetFileNameWithExt = targetFileName + ".zip"
+        targetFullPath = backupDir["target"] + targetFileName
+        targetFullPathWithExt = targetFullPath + ".zip"
+        targetFullPathTemp = backupDir["target"] + "temp/" + targetFileName
 
+        logFile = backupDir["target"] + ".log.txt"
         with open(logFile, "a") as logFile:
             try:
-                targetName = PurePosixPath(backupDir["source"]).stem
-                targetFileName = targetName + "_" + datetime.today().strftime("(%Y-%m-%d %H:%M:%S.%f)")
-                targetFileNameWithExt = targetFileName + ".zip"
-                targetFullPath = backupDir["target"] + targetFileName
-                targetFullPathWithExt = targetFullPath + ".zip"
-                targetFullPathTemp = backupDir["target"] + "temp/" + targetFileName
-
                 createArchive()
                 createTrackingFile()
 
