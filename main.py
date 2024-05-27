@@ -89,7 +89,7 @@ def tryFallback():
     except shutilError:
         logMessage = (
                 datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
-                f"FALLBACK: some files could not be copied" +
+                f"FALLBACK: Some files could not be copied" +
                 "\n"
         )
         log(logMessage)
