@@ -1,4 +1,4 @@
-from os.path import isfile, exists, join
+from os.path import isfile, exists, join, abspath, dirname
 from json import load
 from pathlib import PurePosixPath, Path
 from shutil import make_archive, copytree, rmtree, Error as shutilError
@@ -142,8 +142,9 @@ args = parser.parse_args()
 
 verbose = args.verbose
 backup_count = 4
+data_file = join(abspath(dirname(__file__)), "data.json")
 
-with open("data.json") as file:
+with open(data_file) as file:
     data = load(file)
 
 for backup_dir in data["folder"]:
