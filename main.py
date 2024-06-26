@@ -12,7 +12,7 @@ from argparse import ArgumentParser
 def log(message):
     if verbose:
         print(message)
-    logFile.write(message)
+    log_file.write(message)
 
 
 def create_archive(alt_src=None):
@@ -164,8 +164,8 @@ for backup_dir in data["folder"]:
         target_full_path_with_ext = target_full_path + ".zip"
         target_full_path_temp = target + "temp/" + target_file_name
 
-        logFile = target + ".log.txt"
-        with open(logFile, "a") as logFile:
+        log_file = target + ".log.txt"
+        with open(log_file, "a") as log_file:
             try:
                 create_archive()
                 create_tracking_file()
