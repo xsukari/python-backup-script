@@ -8,124 +8,125 @@ from time import time
 from math import floor
 from argparse import ArgumentParser
 
+
 def log(message):
     if verbose:
         print(message)
     logFile.write(message)
 
 
-def createArchive(altSrc = None):
-    global logMessage
+def create_archive(alt_src=None):
+    global log_message
 
-    if altSrc is None:
+    if alt_src is None:
         src = source
 
     else:
-        src = altSrc
+        src = alt_src
 
-    timeStart = time()
-    make_archive(targetFullPath, "zip", src)
-    with ZipFile(targetFullPathWithExt, "a", compression=ZIP_DEFLATED) as archive:
-        archive.writestr("source_" + targetName + ".txt", source)
-    timeEnd = time()
+    time_start = time()
+    make_archive(target_full_path, "zip", src)
+    with ZipFile(target_full_path_with_ext, "a", compression=ZIP_DEFLATED) as archive:
+        archive.writestr("source_" + target_name + ".txt", source)
+    time_end = time()
 
-    logMessage = (
+    log_message = (
             datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
             f"BACKUP of {source} " +
-            f"CREATED as {targetFileNameWithExt} " +
-            f"in {floor(timeEnd - timeStart)} seconds" +
+            f"CREATED as {target_file_name_with_ext} " +
+            f"in {floor(time_end - time_start)} seconds" +
             "\n"
     )
-    log(logMessage)
+    log(log_message)
 
 
-def createTrackingFile():
-    global logMessage, file
+def create_tracking_file():
+    global log_message, file
 
-    trackingFile = (
+    tracking_file = (
         target +
         "." +
         source.replace("/", "%").replace("\\", "%") +
         ".txt"
     )
-    if not isfile(trackingFile):
-        with open(trackingFile, "w") as file:
-            file.write(targetFileNameWithExt)
+    if not isfile(tracking_file):
+        with open(tracking_file, "w") as file:
+            file.write(target_file_name_with_ext)
 
-            logMessage = (
+            log_message = (
                     datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
                     f"CREATED new tracking file for {source}" +
                     "\n"
             )
-            log(logMessage)
+            log(log_message)
 
     else:
-        with open(trackingFile, "r+") as file:
-            trackedBackups = file.read().splitlines()
-            trackedBackups.insert(0, targetFileNameWithExt)
+        with open(tracking_file, "r+") as file:
+            tracked_backups = file.read().splitlines()
+            tracked_backups.insert(0, target_file_name_with_ext)
 
-            if len(trackedBackups) > backupCount:
-                fileToDelete = trackedBackups[-1]
-                del trackedBackups[-1]
-                Path(target + fileToDelete).unlink()
+            if len(tracked_backups) > backup_count:
+                file_to_delete = tracked_backups[-1]
+                del tracked_backups[-1]
+                Path(target + file_to_delete).unlink()
 
-                logMessage = (
+                log_message = (
                         datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
-                        f"DELETED old backup {fileToDelete} of {source}" +
+                        f"DELETED old backup {file_to_delete} of {source}" +
                         "\n"
                 )
-                log(logMessage)
+                log(log_message)
 
             file.seek(0)
-            file.write("\n".join(trackedBackups))
+            file.write("\n".join(tracked_backups))
 
 
-def tryFallback():
-    global logMessage
+def try_fallback():
+    global log_message
 
     try:
-        copytree(source, targetFullPathTemp, dirs_exist_ok=True)
+        copytree(source, target_full_path_temp, dirs_exist_ok=True)
 
     except shutilError:
-        logMessage = (
+        log_message = (
                 datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
                 f"FALLBACK: Some files could not be copied" +
                 "\n"
         )
-        log(logMessage)
+        log(log_message)
 
     try:
-        logMessage = (
+        log_message = (
                 datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
-                f"FALLBACK: Creating archive from {targetFullPathTemp}" +
+                f"FALLBACK: Creating archive from {target_full_path_temp}" +
                 "\n"
         )
-        log(logMessage)
+        log(log_message)
 
-        createArchive(targetFullPathTemp)
-        createTrackingFile()
+        create_archive(target_full_path_temp)
+        create_tracking_file()
         # Delete temp files
-        rmtree(targetFullPathTemp)
+        rmtree(target_full_path_temp)
 
-        logMessage = (
+        log_message = (
                 datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
-                f"FALLBACK: SUCCESSFUL for {targetFullPathTemp}" +
+                f"FALLBACK: SUCCESSFUL for {target_full_path_temp}" +
                 "\n"
         )
-        log(logMessage)
+        log(log_message)
 
     except PermissionError:
-        logMessage = (
+        log_message = (
                 datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
-                f"FALLBACK: FAILED for {targetFullPathTemp}" +
+                f"FALLBACK: FAILED for {target_full_path_temp}" +
                 "\n"
         )
-        log(logMessage)
+        log(log_message)
 
         # Delete failed zip
-        Path(targetFullPathWithExt).unlink()
+        Path(target_full_path_with_ext).unlink()
         # Delete temp files
-        rmtree(targetFullPathTemp)
+        rmtree(target_full_path_temp)
 
 
 # Script start
@@ -140,47 +141,47 @@ parser.add_argument(
 args = parser.parse_args()
 
 verbose = args.verbose
-backupCount = 4
+backup_count = 4
 
 with open("data.json") as file:
     data = load(file)
 
-for backupDir in data["folder"]:
-    sourceIsNotEmpty = backupDir["source"] != ""
-    targetIsNotEmpty = backupDir["target"] != ""
-    sourceExists = exists(backupDir["source"])
-    targetExists = exists(backupDir["target"])
+for backup_dir in data["folder"]:
+    source_is_not_empty = backup_dir["source"] != ""
+    target_is_not_empty = backup_dir["target"] != ""
+    source_exists = exists(backup_dir["source"])
+    target_exists = exists(backup_dir["target"])
 
-    if sourceIsNotEmpty and targetIsNotEmpty and sourceExists and targetExists:
+    if source_is_not_empty and target_is_not_empty and source_exists and target_exists:
         # Add trailing slash to path if it does not exist
-        source = join(backupDir["source"], "")
-        target = join(backupDir["target"], "")
+        source = join(backup_dir["source"], "")
+        target = join(backup_dir["target"], "")
 
-        targetName = PurePosixPath(source).stem
-        targetFileName = targetName + "_" + datetime.today().strftime("(%Y-%m-%d %H:%M:%S.%f)")
-        targetFileNameWithExt = targetFileName + ".zip"
-        targetFullPath = target + targetFileName
-        targetFullPathWithExt = targetFullPath + ".zip"
-        targetFullPathTemp = target + "temp/" + targetFileName
+        target_name = PurePosixPath(source).stem
+        target_file_name = target_name + "_" + datetime.today().strftime("(%Y-%m-%d %H:%M:%S.%f)")
+        target_file_name_with_ext = target_file_name + ".zip"
+        target_full_path = target + target_file_name
+        target_full_path_with_ext = target_full_path + ".zip"
+        target_full_path_temp = target + "temp/" + target_file_name
 
         logFile = target + ".log.txt"
         with open(logFile, "a") as logFile:
             try:
-                createArchive()
-                createTrackingFile()
-                archiveFailed = False
+                create_archive()
+                create_tracking_file()
+                archive_failed = False
 
             except PermissionError:
-                logMessage = (
+                log_message = (
                         datetime.today().strftime("%Y-%m-%d %H:%M:%S - ") +
                         f"Permission DENIED for {source}, FALLING BACK to copying files" +
                         "\n"
                 )
-                log(logMessage)
+                log(log_message)
 
                 # Delete failed zip
-                Path(targetFullPathWithExt).unlink()
-                archiveFailed = True
+                Path(target_full_path_with_ext).unlink()
+                archive_failed = True
 
-            if archiveFailed:
-                tryFallback()
+            if archive_failed:
+                try_fallback()
